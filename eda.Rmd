@@ -1,0 +1,10 @@
+---
+title: "My PDF Report"
+output: pdf_document
+---
+
+# Introduction
+
+This is my R Markdown report. I can include R code chunks, text, and more.
+
+\`\`\`{r} \# Your R code goes here
