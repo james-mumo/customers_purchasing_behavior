@@ -180,8 +180,6 @@ if (missing_count_gender > 0) {
 ## DATA PREPARATION
 
 ```{r}
-
-
 ## Gender Preparations
 
 # Count the number of males and females
@@ -253,14 +251,14 @@ customer_df$Age_Group <- cut(customer_df$Customer.Age, breaks = c(17, 25, 35, 45
 str(customer_df)
 
 
-# Group by Age_Group Count The Number of People in Each Group
+# Group Customers by Age_Group 
 
-unique_people_count_by_age <- customer_df %>%
+customers_number_by_age <- customer_df %>%
   group_by(Age_Group) %>%
-  summarise(Number_of_Unique_People = n_distinct(Customer.ID))
+  summarise(Number_of_Unique_Customers_by_Age_Group = n_distinct(Customer.ID))
 
 # Print the result
-print(unique_people_count_by_age)
+print(customers_number_by_age)
 
 
 
@@ -272,27 +270,6 @@ total_purchase_by_age <- customer_df %>%
 
 # Print the result
 print(total_purchase_by_age)
-
-
-# Create a line chart with a smooth curve
-ggplot(total_purchase_by_age, aes(x = Age_Group, y = Total_Purchase_Amount_Made, group = 1)) +
-  geom_point() +
-  geom_smooth(method = "loess", se = FALSE) +  # Adding a smooth curve
-  labs(title = "Total Purchase Amount by Age Group",
-       x = "Age Group",
-       y = "Total Purchase Amount") +
-  theme_minimal()
-
-
-# Create a line and bar chart
-ggplot(total_purchase_by_age, aes(x = Age_Group, y = Total_Purchase_Amount_Made)) +
-  geom_point(color = "blue") +
-  geom_line(aes(linewidth = 1), color = "blue") +  # Updated to use linewidth
-  geom_bar(stat = "identity", fill = "green", alpha = 0.7) +  # Adding a bar chart
-  labs(title = "Total Purchase Amount by Age Group",
-       x = "Age Group",
-       y = "Total Purchase Amount") +
-  theme_minimal()
 
 
 
@@ -312,8 +289,6 @@ print(total_purchase_by_category)
 
 
 
-
-
 # Filter the data for the first category ("Home") and then group by Age_Group
 sales_first_category_by_Home <- customer_df %>%
   filter(Product.Category == "Home") %>%
@@ -322,15 +297,6 @@ sales_first_category_by_Home <- customer_df %>%
 
 # Print the result
 print(sales_first_category_by_Home)
-
-
-
-
-
-
-
-
-
 
 
 
@@ -409,7 +375,7 @@ ggplot(total_purchase_by_gender_and_quantity, aes(x = Product.Category, y = Tota
 ```{r}
 
 # Plotting Bar Chart for Number of Unique People by Age
-ggplot(unique_people_count_by_age, aes(x = Age_Group, y = Number_of_Unique_People, fill = Age_Group)) +
+ggplot(customers_number_by_age, aes(x = Age_Group, y = Number_of_Unique_Customers_by_Age_Group, fill = Age_Group)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Number of Customers by Age-Group",
        x = "Age Group",
@@ -420,41 +386,29 @@ ggplot(unique_people_count_by_age, aes(x = Age_Group, y = Number_of_Unique_Peopl
   scale_y_continuous(labels = comma)  # Format y-axis labels as commas for better readability
 
 
-# Plotting Pie Chart for Total Purchase Amount by Age Group
-ggplot(total_purchase_by_age, aes(x = "", y = Total_Purchase_Amount_Made, fill = Age_Group)) +
-  geom_bar(stat = "identity", width = 1) +
-  geom_text(aes(label = scales::comma(Total_Purchase_Amount_Made)),
-            position = position_stack(vjust = 0.5), size = 3) +  # Add text labels
-  coord_polar("y") +
-  labs(title = "Total Purchase Amount by Age Group",
-       fill = "Age Group",
-       x = NULL,
-       y = NULL) +
+
+
+
+# Your data manipulation code
+customer_df %>%
+  group_by(Age_Group) %>%
+  summarise(Total_Purchase_Amount_Made = sum(Total.Purchase.Amount)) %>%
+  arrange(Age_Group) %>%
+  ungroup() -> result_df
+
+# Create a line chart with a smooth continuous line and grey background theme
+ggplot(result_df, aes(x = Age_Group, y = Total_Purchase_Amount_Made, group = 1)) +
+  geom_smooth(method = "loess", se = FALSE, color = "red", linetype = "solid", size = 1) +  # Adding a smooth continuous line
+  labs(x = "Age Group", y = "Total Purchase Amount", title = "Total Purchase Amount by Age Group") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5),  # Center the title
-        legend.position = "bottom") +  
-  scale_y_continuous(labels = comma)  # Format y-axis labels as commas for better readability
-
-
-
-
-
-
-# Plotting Pie Chart for Total Purchase Amount by Product Category
-ggplot(total_purchase_by_category, aes(x = "", y = Total_Purchases_Per_Category, fill = Product.Category)) +
-  geom_bar(stat = "identity", width = 1) +
-  geom_text(aes(label = scales::comma(Total_Purchases_Per_Category)),
-            position = position_stack(vjust = 0.5), size = 3) +  # Add text labels
-  coord_polar("y") +
-  labs(title = "Total Purchase Amount by Product Category",
-       fill = "Product Category",
-       x = NULL,
-       y = NULL) +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5),  # Center the title
-        legend.position = "bottom") +  
-  scale_y_continuous(labels = scales::comma)  # Format y-axis labels as commas for better readability
-
+        axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better readability
+        panel.background = element_rect(fill = "grey90", color = "grey30"),  # Set grey background
+        plot.background = element_rect(fill = "grey90", color = "grey30"),
+        legend.background = element_rect(fill = "grey90", color = "grey30"),
+        panel.grid.major = element_line(color = "white"),  # White grid lines
+        panel.grid.minor = element_line(color = "white")) +  # White grid lines
+  scale_y_continuous(labels = scales::comma)
 
 
 
