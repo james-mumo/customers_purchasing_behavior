@@ -4,6 +4,7 @@ title: "Customer Purchasing Behavior Analysis"
 
 
 # Customer Purchasing Behavior based on gender and age in relation to product categories (Electronics, Books, Home, Clothing).
+
 Date: 2024-02-05
 
 ```{r include=FALSE}
@@ -13,8 +14,6 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```{r setup, include=FALSE}
 # Load necessary packages
 library(dplyr)
-#install.packages("fmsb")
-#library(fmsb)
 library(tidyr)
 library(ggplot2)
 library(psych)
@@ -30,7 +29,7 @@ library(ggthemes)
 csv_path <- "dataset_for_project.csv"
 customer_df <- read.csv(csv_path)
 
-# Display the structure of the loaded data frame
+# Structure of the loaded data frame
 str(customer_df)
 
 # List all columns in the data frame
@@ -64,10 +63,10 @@ if (length(cols_with_missing) > 0) {
 
 
 # Removing Columns That Wont be Needed in The Analysis
-columns_to_remove <- c("Customer.Name", "Payment.Method", "Customer.Age", "Churn", "Returns")
+columns_to_remove <- c("Customer.Name", "Purchase.Date", "Payment.Method", "Customer.Age", "Churn", "Returns")
 customer_df <- customer_df[, !(names(customer_df) %in% columns_to_remove)]
 
-# Display the structure of the updated data frame
+# Displaying the structure of the updated data frame
 str(customer_df)
 
 # Checking for duplicates
@@ -75,7 +74,7 @@ duplicates <- customer_df[duplicated(customer_df), ]
 
 # Display duplicate rows
 if (nrow(duplicates) > 0) {
-  cat("Duplicate rows found. Displaying first few:\n")
+  cat("Duplicate rows found\n")
   print(duplicates)
 } else {
   cat("No duplicate rows found.\n")
@@ -131,8 +130,6 @@ if (missing_count_quantity > 0) {
   cat("No null values found in 'Quantity' column.\n")
 }
 
-
-
 # Checking missing null in the "Total.Purchase.Amount" column
 missing_count_total_purchase <- sum(is.na(customer_df$Total.Purchase.Amount) | customer_df$Total.Purchase.Amount == "")
 
@@ -141,7 +138,6 @@ if (missing_count_total_purchase > 0) {
 } else {
   cat("No null values found in 'Total.Purchase.Amount' column.\n")
 }
-
 
 
 # Checking null values in the "Customer.Age" column
@@ -154,7 +150,6 @@ if (missing_count_customer_age > 0) {
 }
 
 
-
 # Checking null values in the "Age" column
 missing_count_age <- sum(is.na(customer_df$Age) | customer_df$Age == "")
 
@@ -163,7 +158,6 @@ if (missing_count_age > 0) {
 } else {
   cat("No null values found in 'Age' column.\n")
 }
-
 
 
 # Check null values in the "Gender" column
@@ -229,8 +223,6 @@ total_purchase_by_gender_and_quantity <- customer_df %>%
 
 # Print the result
 print(total_purchase_by_gender_and_quantity)
-
-
 
 
 # List numeric columns
@@ -513,8 +505,58 @@ line_plots
 #A correlation Analysis Between Age and Total Purchase Amount
 cor_age_price <- cor(customer_df$Age, customer_df$Total.Purchase.Amount)
 
-# Print the correlation coefficients
-print(paste("Correlation between Age and Total Purchase Amount:", cor_age_price))
+# Print the correlation coefficient rounded to 2 decimal places
+print(paste("Correlation between Age and Total Purchase Amount:", round(cor_age_price, 2)))
+
+
+# Correlation Analysis Between Age and Product Price
+cor_age_product_price <- cor(customer_df$Age, customer_df$Product.Price)
+
+# Print the correlation coefficient rounded to 2 decimal places
+print(paste("Correlation between Age and Product Price:", round(cor_age_product_price, 2)))
+
+
+# Correlation Analysis Between Age and Quantity
+cor_age_quantity <- cor(customer_df$Age, customer_df$Quantity)
+
+# Print the correlation coefficient rounded to 2 decimal places
+print(paste("Correlation between Age and Quantity:", round(cor_age_quantity, 2)))
+
+
+
+```
+
+# ANOVA Tets for Categorical Values
+
+```{r}
+
+#Fitting and Anova Model for Product Price
+anova_total_purchase <- aov(Total.Purchase.Amount ~ Gender, data = customer_df)
+
+# Summarize the ANOVA results
+summary(anova_total_purchase)
+
+
+
+# Fit an ANOVA model for Product Price
+anova_product_price <- aov(Product.Price ~ Gender, data = customer_df)
+
+# Summarize the ANOVA results
+summary(anova_product_price)
+
+
+# Fit an ANOVA model for Quantity
+anova_quantity <- aov(Quantity ~ Gender, data = customer_df)
+
+# Summarize the ANOVA results
+summary(anova_quantity)
+
+
+
+
+
+
+
 
 
 
@@ -523,6 +565,15 @@ cor_category_price <- cor(as.numeric(customer_df$Product.Category), customer_df$
 
 print(paste("Correlation between Gender and Total Purchase Amount:", cor_gender_price))
 print(paste("Correlation between Product Category and Total Purchase Amount:", cor_category_price))
+
+
+
+
+```
+
+
+# T-Test
+```{r}
 
 
 

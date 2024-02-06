@@ -202,8 +202,6 @@ unique_people_count_by_age <- customer_df %>%
 # Print the result
 print(unique_people_count_by_age)
 
-
-
 # Summing up the total number of people across all age groups
 total_people_count <- sum(unique_people_count_by_age$Number_of_Unique_People)
 
