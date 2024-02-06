@@ -1,10 +1,455 @@
 ---
-title: "My PDF Report"
-output: pdf_document
+title: "Customer Purchasing Behavior Analysis"
 ---
 
-# Introduction
 
-This is my R Markdown report. I can include R code chunks, text, and more.
+# Customer Purchasing Behavior based on gender and age in relation to product categories (Electronics, Books, Home, Clothing).
+Date: 2024-02-05
 
-\`\`\`{r} \# Your R code goes here
+
+```{r setup, include=FALSE}
+# Load necessary packages
+library(dplyr)
+#install.packages("fmsb")
+#library(fmsb)
+library(tidyr)
+library(ggplot2)
+library(psych)
+library(skimr)
+library(ggplot2)
+library(scales)
+library(ggplot2)
+library(ggthemes)
+```
+
+```{r}
+# Read CSV file into a data frame
+csv_path <- "dataset_for_project.csv"
+customer_df <- read.csv(csv_path)
+
+# Display the structure of the loaded data frame
+str(customer_df)
+
+# List all columns in the data frame
+cat(names(customer_df), "\n\n")
+
+# Total Number of Rows and Columns
+
+# Print total number of rows
+cat("Total number of Rows is", nrow(customer_df), "\n")
+
+# Print total number of columns
+cat("Total number of Columns is", ncol(customer_df), "\n")
+
+```
+
+
+
+# DATA CLEANING
+
+```{r}
+# Checking for null values
+missing_values <- sapply(customer_df, function(x) sum(is.na(x) | x == ""))
+cols_with_missing <- names(missing_values[missing_values > 0])
+
+if (length(cols_with_missing) > 0) {
+  cat("Columns with missing values: ", paste(cols_with_missing, collapse = ", "), "\n")
+  print(missing_values[missing_values > 0])
+} else {
+  cat("No null values found.\n")
+}
+
+
+# Removing Columns That Wont be Needed in The Analysis
+columns_to_remove <- c("Customer.Name", "Payment.Method", "Churn", "Returns")
+customer_df <- customer_df[, !(names(customer_df) %in% columns_to_remove)]
+
+# Display the structure of the updated data frame
+str(customer_df)
+
+# Checking for duplicates
+duplicates <- customer_df[duplicated(customer_df), ]
+
+# Display duplicate rows
+if (nrow(duplicates) > 0) {
+  cat("Duplicate rows found. Displaying first few:\n")
+  print(duplicates)
+} else {
+  cat("No duplicate rows found.\n")
+}
+
+# Checking for missing values after removing columns that won't be needed
+missing_values <- sapply(customer_df, function(x) sum(is.na(x) | x == ""))
+cols_with_missing <- names(missing_values[missing_values > 0])
+
+if (length(cols_with_missing) > 0) {
+  cat("Columns with missing values: ", paste(cols_with_missing, collapse = ", "), "\n")
+  print(missing_values[missing_values > 0])
+} else {
+  cat("No missing values found.\n")
+}
+
+
+# Check null values in the "Customer.ID" column
+missing_count_customer_id <- sum(is.na(customer_df$Customer.ID) | customer_df$Customer.ID == "")
+
+if (missing_count_customer_id > 0) {
+  cat("Column 'Customer.ID' has", missing_count_customer_id, "null values.\n")
+} else {
+  cat("No null values found in 'Customer.ID' column.\n")
+}
+
+
+# Check null values in the "Purchase.Date" column
+missing_count_purchase_date <- sum(is.na(customer_df$Purchase.Date) | customer_df$Purchase.Date == "")
+
+if (missing_count_purchase_date > 0) {
+  cat("Column 'Purchase.Date' has", missing_count_purchase_date, "null values.\n")
+} else {
+  cat("No null values found in 'Purchase.Date' column.\n")
+}
+
+# Checking null values in the "Product.Category" column
+missing_count_product_category <- sum(is.na(customer_df$Product.Category) | customer_df$Product.Category == "")
+
+if (missing_count_product_category > 0) {
+  cat("Column 'Product.Category' has", missing_count_product_category, "null values.\n")
+} else {
+  cat("No null values found in 'Product.Category' column.\n")
+}
+
+
+# Checking null values in the "Quantity" column
+missing_count_quantity <- sum(is.na(customer_df$Quantity) | customer_df$Quantity == "")
+
+if (missing_count_quantity > 0) {
+  cat("Column 'Quantity' has", missing_count_quantity, "null values.\n")
+} else {
+  cat("No null values found in 'Quantity' column.\n")
+}
+
+
+
+# Checking missing null in the "Total.Purchase.Amount" column
+missing_count_total_purchase <- sum(is.na(customer_df$Total.Purchase.Amount) | customer_df$Total.Purchase.Amount == "")
+
+if (missing_count_total_purchase > 0) {
+  cat("Column 'Total.Purchase.Amount' has", missing_count_total_purchase, "null values.\n")
+} else {
+  cat("No null values found in 'Total.Purchase.Amount' column.\n")
+}
+
+
+
+# Checking null values in the "Customer.Age" column
+missing_count_customer_age <- sum(is.na(customer_df$Customer.Age) | customer_df$Customer.Age == "")
+
+if (missing_count_customer_age > 0) {
+  cat("Column 'Customer.Age' has", missing_count_customer_age, "null values.\n")
+} else {
+  cat("No null values found in 'Customer.Age' column.\n")
+}
+
+
+
+# Checking null values in the "Age" column
+missing_count_age <- sum(is.na(customer_df$Age) | customer_df$Age == "")
+
+if (missing_count_age > 0) {
+  cat("Column 'Age' has", missing_count_age, "missing values.\n")
+} else {
+  cat("No null values found in 'Age' column.\n")
+}
+
+
+
+# Check null values in the "Gender" column
+missing_count_gender <- sum(is.na(customer_df$Gender) | customer_df$Gender == "")
+
+if (missing_count_gender > 0) {
+  cat("Column 'Gender' has", missing_count_gender, "missing values.\n")
+} else {
+  cat("No null values found in 'Gender' column.\n")
+}
+
+
+```
+
+
+
+## DATA PREPARATION
+
+```{r}
+
+
+## Gender Preparations
+
+# Count the number of males and females
+gender_count <- customer_df %>%
+  group_by(Gender) %>%
+  summarise(Number_Based_Gender = n_distinct(Customer.ID))
+
+# Print the result
+print(gender_count)
+
+
+
+# Group by Gender and calculate Total Purchase Amount
+total_purchase_by_gender <- customer_df %>%
+  group_by(Gender) %>%
+  summarise(Total_Purchase_Based_On_Gender = sum(Total.Purchase.Amount))
+
+# Print the result
+print(total_purchase_by_gender)
+
+
+# Group by Gender and Category, then calculate Total Purchase Amount
+total_purchase_by_gender_category <- customer_df %>%
+  group_by(Gender, Product.Category) %>%
+  summarise(Total_Purchase_Based_On_Gender_Category = sum(Total.Purchase.Amount))
+
+# Print the result
+print(total_purchase_by_gender_category)
+
+
+
+# Group by Gender and Category, then calculate Total Product Price
+total_purchase_by_gender_product_price <- customer_df %>%
+  group_by(Gender, Product.Category) %>%
+  summarise(Total_Purchase_Based_On_Gender_Prod_Price = sum(Product.Price))
+
+# Print the result
+print(total_purchase_by_gender_product_price)
+
+# Group by Gender and Category, then calculate Quantity
+total_purchase_by_gender_and_quantity <- customer_df %>%
+  group_by(Gender, Product.Category) %>%
+  summarise(Total_Purchase_Based_On_Gender_Prod_Price = sum(Quantity))
+
+# Print the result
+print(total_purchase_by_gender_and_quantity)
+
+
+
+
+# List numeric columns
+numeric_cols <- sapply(customer_df[, sapply(customer_df, function(x) !is.character(x))], is.numeric)
+numeric_cols <- names(numeric_cols)
+cat("Numeric columns are: ", paste(numeric_cols, collapse = ", "), "\n")
+
+
+# List non-numeric columns
+nonnumeric_cols <- setdiff(names(customer_df), numeric_cols)
+cat("Non-Numeric columns are: ", paste(nonnumeric_cols, collapse = ", "), "\n")
+
+
+
+## AGE Group Preparations
+
+# Creating Age Groups
+customer_df$Age_Group <- cut(customer_df$Customer.Age, breaks = c(17, 25, 35, 45, 60, Inf), labels = c("18-25", "26-35", "36-45", "46-60", "60+"))
+str(customer_df)
+
+
+# Group by Age_Group Count The Number of People in Each Group
+
+unique_people_count_by_age <- customer_df %>%
+  group_by(Age_Group) %>%
+  summarise(Number_of_Unique_People = n_distinct(Customer.ID))
+
+# Print the result
+print(unique_people_count_by_age)
+
+
+
+
+# Group by Age_Group and calculate the total purchase amount for each group
+total_purchase_by_age <- customer_df %>%
+  group_by(Age_Group) %>%
+  summarise(Total_Purchase_Amount_Made = sum(Total.Purchase.Amount))
+
+# Print the result
+print(total_purchase_by_age)
+
+
+
+## Get the Products Categories
+unique_product_categories <- unique(customer_df$Product.Category)
+# Print the unique values
+print(unique_product_categories)
+
+
+# Group by Product.Category and calculate the sum of Total_Purchases_Per_Category for each category
+total_purchase_by_category <- customer_df %>%
+  group_by(Product.Category) %>%
+  summarise(Total_Purchases_Per_Category = sum(Total.Purchase.Amount))
+
+# Print the result
+print(total_purchase_by_category)
+
+
+
+
+
+# Filter the data for the first category ("Home") and then group by Age_Group
+sales_first_category_by_Home <- customer_df %>%
+  filter(Product.Category == "Home") %>%
+  group_by(Age_Group) %>%
+  summarise(Total_Purchase_Amount_on_Home = sum(Total.Purchase.Amount))
+
+# Print the result
+print(sales_first_category_by_Home)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+## DATA VISUALIZATION
+
+```{r}
+
+# Calculate percentage
+gender_count <- gender_count %>%
+  mutate(Percentage = Number_Based_Gender / sum(Number_Based_Gender) * 100)
+
+# Plotting Pie Chart for Gender Distribution
+ggplot(gender_count, aes(x = "", y = Percentage, fill = Gender)) +
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = paste0(round(Percentage), "%")),
+            position = position_stack(vjust = 0.5), size = 3) +
+  coord_polar("y") +
+  labs(title = "Gender Distribution",
+       fill = "Gender",
+       x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        legend.position = "none")  # Remove legend
+
+
+
+
+# Plotting Bar Chart for Total Purchase Amount by Gender Based on Product Category
+ggplot(total_purchase_by_gender_category, aes(x = Gender, y = Total_Purchase_Based_On_Gender_Category, fill = Product.Category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Total Purchase Amount by Gender and Product Category",
+       x = "Gender",
+       y = "Total Purchase Amount") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_y_continuous(labels = scales::comma)  # Format y-axis labels as commas for better readability
+
+
+
+
+# Plotting Bar Chart for Total Product Price by Gender and Product Category
+ggplot(total_purchase_by_gender_product_price, aes(x = Product.Category, y = Total_Purchase_Based_On_Gender_Prod_Price, fill = Gender)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.7) +
+  labs(title = "Total Product Price by Gender and Product Category",
+       x = "Product Category",
+       y = "Total Product Price") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_y_continuous(labels = scales::dollar_format(prefix = "$"))  # Format y-axis labels as dollars
+
+
+
+ggplot(total_purchase_by_gender_and_quantity, aes(x = Product.Category, y = Total_Purchase_Based_On_Gender_Prod_Price, fill = Gender)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.7) +
+  labs(title = "Total Purchase Quantity by Gender and Product Category",
+       x = "Product Category",
+       y = "Total Purchase Quantity") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_y_continuous(labels = comma)
+
+```
+
+##Age Based Plots
+\hrulefill
+
+
+```{r}
+
+# Plotting Bar Chart for Number of Unique People by Age
+ggplot(unique_people_count_by_age, aes(x = Age_Group, y = Number_of_Unique_People, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Number of Customers by Age-Group",
+       x = "Age Group",
+       y = "Number of Customers") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_y_continuous(labels = comma)  # Format y-axis labels as commas for better readability
+
+
+# Plotting Pie Chart for Total Purchase Amount by Age Group
+ggplot(total_purchase_by_age, aes(x = "", y = Total_Purchase_Amount_Made, fill = Age_Group)) +
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = scales::comma(Total_Purchase_Amount_Made)),
+            position = position_stack(vjust = 0.5), size = 3) +  # Add text labels
+  coord_polar("y") +
+  labs(title = "Total Purchase Amount by Age Group",
+       fill = "Age Group",
+       x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        legend.position = "bottom") +  
+  scale_y_continuous(labels = comma)  # Format y-axis labels as commas for better readability
+
+
+
+# Plotting Pie Chart for Total Purchase Amount by Product Category
+ggplot(total_purchase_by_category, aes(x = "", y = Total_Purchases_Per_Category, fill = Product.Category)) +
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = scales::comma(Total_Purchases_Per_Category)),
+            position = position_stack(vjust = 0.5), size = 3) +  # Add text labels
+  coord_polar("y") +
+  labs(title = "Total Purchase Amount by Product Category",
+       fill = "Product Category",
+       x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        legend.position = "bottom") +  
+  scale_y_continuous(labels = scales::comma)  # Format y-axis labels as commas for better readability
+
+
+
+
+
+
+
+# Plotting Bar Chart for Total Purchase Amount for "Home" Product Category by Age Group
+ggplot(sales_first_category_by_Home, aes(x = Age_Group, y = Total_Purchase_Amount_on_Home, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Total Purchase Amount for 'Home' Product Category by Age Group",
+       x = "Age Group",
+       y = "Total Purchase Amount") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_y_continuous(labels = scales::comma)  # Format y-axis labels as commas for better readability
+
+
+
+
+
+```
