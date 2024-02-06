@@ -2,7 +2,6 @@
 title: "Customer Purchasing Behavior Analysis"
 ---
 
-
 # Customer Purchasing Behavior based on gender and age in relation to product categories (Electronics, Books, Home, Clothing).
 
 Date: 2024-02-05
@@ -22,6 +21,7 @@ library(ggplot2)
 library(scales)
 library(ggplot2)
 library(ggthemes)
+
 ```
 
 ```{r}
@@ -44,8 +44,6 @@ cat("Total number of Rows is", nrow(customer_df), "\n")
 cat("Total number of Columns is", ncol(customer_df), "\n")
 
 ```
-
-
 
 # DATA CLEANING
 
@@ -172,8 +170,6 @@ if (missing_count_gender > 0) {
 
 ```
 
-
-
 ## DATA PREPARATION
 
 ```{r}
@@ -290,7 +286,6 @@ print(sales_first_category_by_Home)
 
 
 ```
-
 
 ## DATA VISUALIZATION
 
@@ -493,7 +488,6 @@ line_plots
 
 ```
 
-
 # CORRELATION ANALYSIS
 
 ```{r}
@@ -502,40 +496,140 @@ line_plots
 cor_age_price <- cor(customer_df$Age, customer_df$Total.Purchase.Amount)
 
 # Print the correlation coefficient rounded to 2 decimal places
-print(paste("Correlation between Age and Total Purchase Amount:", round(cor_age_price, 2)))
+print(paste("Correlation between Age and Total Purchase Amount:", round(cor_age_price, 4)))
 
 
 # Correlation Analysis Between Age and Product Price
 cor_age_product_price <- cor(customer_df$Age, customer_df$Product.Price)
 
 # Print the correlation coefficient rounded to 2 decimal places
-print(paste("Correlation between Age and Product Price:", round(cor_age_product_price, 2)))
-
+print(paste("Correlation between Age and Product Price:", round(cor_age_product_price, 4)))
 
 # Correlation Analysis Between Age and Quantity
 cor_age_quantity <- cor(customer_df$Age, customer_df$Quantity)
 
-# Print the correlation coefficient rounded to 2 decimal places
-print(paste("Correlation between Age and Quantity:", round(cor_age_quantity, 2)))
+# Round the correlation coefficient to 10 decimal places
+rounded_cor <- round(cor_age_quantity, 5)
+
+# Print the correlation coefficient
+print(paste("Correlation between Age and Quantity:", rounded_cor))
+
 
 
 
 ```
 
-# ANOVA Tets for Categorical Values
+# Correlation Matrix for Product.Price, Quantity, Total.Purchase.Amount, Age
 
 ```{r}
+# Filter numeric columns from the dataframe and remove "Customer.ID"
+numeric_df <- customer_df[, !(names(customer_df) %in% c("Customer.ID")) & sapply(customer_df, is.numeric)]
 
-#Fitting and Anova Model for Product Price
-anova_total_purchase <- aov(Total.Purchase.Amount ~ Gender, data = customer_df)
+# Compute the correlation matrix
+correlation_matrix <- cor(numeric_df)
+
+# Round the correlation matrix to 4 decimal places
+correlation_matrix_rounded <- round(correlation_matrix, 4)
+
+# Print the rounded correlation matrix
+print(correlation_matrix_rounded)
+
 
 
 ```
 
+# ANOVA TESTS for Categorical Values
+
+```{r}
+# Rename levels of the Gender factor
+customer_df$Gender <- factor(customer_df$Gender, levels = c("Male", "Female"))
+
+# Perform ANOVA for Gender category and Total.Amount.Purchase
+anova_result1 <- aov(Total.Purchase.Amount ~ Gender, data = customer_df)
+
+# Print the ANOVA result
+print(anova_result1)
+
+# Perform ANOVA for Gender against Quantity
+anova_gender_quantity <- aov(Quantity ~ Gender, data = customer_df)
+
+# Perform ANOVA for Gender against Age
+anova_gender_age <- aov(Age ~ Gender, data = customer_df)
+
+# Perform ANOVA for Gender against Product.Price
+anova_gender_price <- aov(Product.Price ~ Gender, data = customer_df)
+
+# Print the ANOVA results for Gender against Quantity
+print("ANOVA for Gender against Quantity:")
+print(summary(anova_gender_quantity))
+
+# Print the ANOVA results for Gender against Age
+print("ANOVA for Gender against Age:")
+print(summary(anova_gender_age))
+
+# Print the ANOVA results for Gender against Product.Price
+print("ANOVA for Gender against Product.Price:")
+print(summary(anova_gender_price))
+
+```
 
 # T-Test
+
 ```{r}
 
+# Perform t-test for Gender against Quantity
+t_test_gender_quantity <- t.test(Quantity ~ Gender, data = customer_df)
+
+# Print the t-test results for Gender against Quantity
+print("t-test for Gender against Quantity:")
+print(t_test_gender_quantity)
+
+
+```
+
+```{r}
+
+# Perform t-test for Gender against Age
+t_test_gender_age <- t.test(Age ~ Gender, data = customer_df)
+
+# Print the t-test results for Gender against Age
+print("t-test for Gender against Age:")
+print(t_test_gender_age)
+
+```
+
+
+```{r}
+
+
+# Perform t-test for Gender against Product.Price
+t_test_gender_price <- t.test(Product.Price ~ Gender, data = customer_df)
+# Print the t-test results for Gender against Product.Price
+print("t-test for Gender against Product.Price:")
+print(t_test_gender_price)
+
+
+
+```
+
+
+
+```{r}
+
+# Extracting x and y variables
+x <- customers_number_by_age$Age_Group
+y <- customers_number_by_age$Number_of_Unique_Customers_by_Age_Group
+
+# Performing linear regression
+model <- lm(y ~ x)
+
+# Summary of the regression model
+summary(model)
+
+# Plotting
+plot(x, y, main = "Linear Regression of Number of Customers by Age Group", 
+     xlab = "Age Group", ylab = "Number of Customers")
+abline(model, col = "red")
 
 
 
