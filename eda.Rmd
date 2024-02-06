@@ -242,9 +242,11 @@ cat("Numeric columns are: ", paste(numeric_cols, collapse = ", "), "\n")
 nonnumeric_cols <- setdiff(names(customer_df), numeric_cols)
 cat("Non-Numeric columns are: ", paste(nonnumeric_cols, collapse = ", "), "\n")
 
+```
 
+# AGE PREPARATIONS
 
-## AGE Group Preparations
+```{r}
 
 # Creating Age Groups
 customer_df$Age_Group <- cut(customer_df$Customer.Age, breaks = c(17, 25, 35, 45, 60, Inf), labels = c("18-25", "26-35", "36-45", "46-60", "60+"))
@@ -270,6 +272,27 @@ total_purchase_by_age <- customer_df %>%
 
 # Print the result
 print(total_purchase_by_age)
+
+
+# Create a line chart with a smooth curve
+ggplot(total_purchase_by_age, aes(x = Age_Group, y = Total_Purchase_Amount_Made, group = 1)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE) +  # Adding a smooth curve
+  labs(title = "Total Purchase Amount by Age Group",
+       x = "Age Group",
+       y = "Total Purchase Amount") +
+  theme_minimal()
+
+
+# Create a line and bar chart
+ggplot(total_purchase_by_age, aes(x = Age_Group, y = Total_Purchase_Amount_Made)) +
+  geom_point(color = "blue") +
+  geom_line(aes(linewidth = 1), color = "blue") +  # Updated to use linewidth
+  geom_bar(stat = "identity", fill = "green", alpha = 0.7) +  # Adding a bar chart
+  labs(title = "Total Purchase Amount by Age Group",
+       x = "Age Group",
+       y = "Total Purchase Amount") +
+  theme_minimal()
 
 
 
@@ -381,9 +404,7 @@ ggplot(total_purchase_by_gender_and_quantity, aes(x = Product.Category, y = Tota
 
 ```
 
-##Age Based Plots
-\hrulefill
-
+## Age Based Plots
 
 ```{r}
 
@@ -413,6 +434,9 @@ ggplot(total_purchase_by_age, aes(x = "", y = Total_Purchase_Amount_Made, fill =
   theme(plot.title = element_text(hjust = 0.5),  # Center the title
         legend.position = "bottom") +  
   scale_y_continuous(labels = comma)  # Format y-axis labels as commas for better readability
+
+
+
 
 
 
