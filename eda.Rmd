@@ -289,10 +289,6 @@ sales_first_category_by_Home <- customer_df %>%
 print(sales_first_category_by_Home)
 
 
-
-
-
-
 ```
 
 
@@ -532,41 +528,6 @@ print(paste("Correlation between Age and Quantity:", round(cor_age_quantity, 2))
 
 #Fitting and Anova Model for Product Price
 anova_total_purchase <- aov(Total.Purchase.Amount ~ Gender, data = customer_df)
-
-# Summarize the ANOVA results
-summary(anova_total_purchase)
-
-
-
-# Fit an ANOVA model for Product Price
-anova_product_price <- aov(Product.Price ~ Gender, data = customer_df)
-
-# Summarize the ANOVA results
-summary(anova_product_price)
-
-
-# Fit an ANOVA model for Quantity
-anova_quantity <- aov(Quantity ~ Gender, data = customer_df)
-
-# Summarize the ANOVA results
-summary(anova_quantity)
-
-
-
-
-
-
-
-
-
-
-cor_gender_price <- cor(as.numeric(customer_df$Gender), customer_df$Total.Purchase.Amount)
-cor_category_price <- cor(as.numeric(customer_df$Product.Category), customer_df$Total.Purchase.Amount)  # Assuming Product.Category is a categorical variable
-
-print(paste("Correlation between Gender and Total Purchase Amount:", cor_gender_price))
-print(paste("Correlation between Product Category and Total Purchase Amount:", cor_category_price))
-
-
 
 
 ```
