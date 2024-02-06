@@ -4,7 +4,7 @@ title: "Customer Purchasing Behavior Analysis"
 
 # Customer Purchasing Behavior based on gender and age in relation to product categories (Electronics, Books, Home, Clothing).
 
-Date: 2024-02-05
+Date: 2024-02-06
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
@@ -170,10 +170,11 @@ if (missing_count_gender > 0) {
 
 ```
 
-## DATA PREPARATION
+# DATA PREPARATION
+
+## Gender Preparations
 
 ```{r}
-## Gender Preparations
 
 # Count the number of males and females
 gender_count <- customer_df %>%
@@ -182,7 +183,6 @@ gender_count <- customer_df %>%
 
 # Print the result
 print(gender_count)
-
 
 
 # Group by Gender and calculate Total Purchase Amount
@@ -233,7 +233,7 @@ cat("Non-Numeric columns are: ", paste(nonnumeric_cols, collapse = ", "), "\n")
 
 ```
 
-# AGE PREPARATIONS
+## Age Preparations
 
 ```{r}
 
@@ -287,7 +287,9 @@ print(sales_first_category_by_Home)
 
 ```
 
-## DATA VISUALIZATION
+# DATA VISUALIZATION
+
+## Gender based plots
 
 ```{r}
 
@@ -634,3 +636,39 @@ abline(model, col = "red")
 
 
 ```
+
+
+
+
+
+# RESULTS AND FINDINGS
+
+## Key findings about gender based purchasing patterns
+
+```{r}
+ggplot(total_purchase_by_gender_category, aes(x = Gender, y = Total_Purchase_Based_On_Gender_Category, fill = Product.Category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Total Purchase Amount by Gender and Product Category",
+       x = "Gender",
+       y = "Total Purchase Amount") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_y_continuous(labels = scales::comma)  # Format y-axis labels as commas for better readability
+
+
+```
+
+## Key findings about age based purchasing patterns
+
+```{r}
+
+```
+
+
+# RECOMENDATIONS
+```{r}
+
+
+```
+

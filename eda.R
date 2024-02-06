@@ -1,8 +1,8 @@
-## ----include=FALSE--------------------------------------
+## ----include=FALSE------------------------------------------------
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 
-## ----setup, include=FALSE-------------------------------
+## ----setup, include=FALSE-----------------------------------------
 # Load necessary packages
 library(dplyr)
 library(tidyr)
@@ -15,7 +15,8 @@ library(ggplot2)
 library(ggthemes)
 
 
-## -------------------------------------------------------
+
+## -----------------------------------------------------------------
 # Read CSV file into a data frame
 csv_path <- "dataset_for_project.csv"
 customer_df <- read.csv(csv_path)
@@ -36,7 +37,7 @@ cat("Total number of Columns is", ncol(customer_df), "\n")
 
 
 
-## -------------------------------------------------------
+## -----------------------------------------------------------------
 # Checking for null values
 missing_values <- sapply(customer_df, function(x) sum(is.na(x) | x == ""))
 cols_with_missing <- names(missing_values[missing_values > 0])
@@ -159,8 +160,7 @@ if (missing_count_gender > 0) {
 
 
 
-## -------------------------------------------------------
-## Gender Preparations
+## -----------------------------------------------------------------
 
 # Count the number of males and females
 gender_count <- customer_df %>%
@@ -169,7 +169,6 @@ gender_count <- customer_df %>%
 
 # Print the result
 print(gender_count)
-
 
 
 # Group by Gender and calculate Total Purchase Amount
@@ -220,7 +219,7 @@ cat("Non-Numeric columns are: ", paste(nonnumeric_cols, collapse = ", "), "\n")
 
 
 
-## -------------------------------------------------------
+## -----------------------------------------------------------------
 
 # Creating Age Groups
 customer_df$Age_Group <- cut(customer_df$Age, breaks = c(17, 25, 35, 45, 60, Inf), labels = c("18-25", "26-35", "36-45", "46-60", "60+"))
@@ -272,7 +271,7 @@ print(sales_first_category_by_Home)
 
 
 
-## -------------------------------------------------------
+## -----------------------------------------------------------------
 
 # Calculate percentage
 gender_count <- gender_count %>%
@@ -334,7 +333,7 @@ ggplot(total_purchase_by_gender_and_quantity, aes(x = Product.Category, y = Tota
 
 
 
-## -------------------------------------------------------
+## -----------------------------------------------------------------
 
 # Plotting Bar Chart for Number of Unique People by Age
 ggplot(customers_number_by_age, aes(x = Age_Group, y = Number_of_Unique_Customers_by_Age_Group, fill = Age_Group)) +
@@ -469,43 +468,160 @@ line_plots
 
 
 
-## -------------------------------------------------------
+## -----------------------------------------------------------------
 
 #A correlation Analysis Between Age and Total Purchase Amount
 cor_age_price <- cor(customer_df$Age, customer_df$Total.Purchase.Amount)
 
 # Print the correlation coefficient rounded to 2 decimal places
-print(paste("Correlation between Age and Total Purchase Amount:", round(cor_age_price, 2)))
+print(paste("Correlation between Age and Total Purchase Amount:", round(cor_age_price, 4)))
 
 
 # Correlation Analysis Between Age and Product Price
 cor_age_product_price <- cor(customer_df$Age, customer_df$Product.Price)
 
 # Print the correlation coefficient rounded to 2 decimal places
-print(paste("Correlation between Age and Product Price:", round(cor_age_product_price, 2)))
-
+print(paste("Correlation between Age and Product Price:", round(cor_age_product_price, 4)))
 
 # Correlation Analysis Between Age and Quantity
 cor_age_quantity <- cor(customer_df$Age, customer_df$Quantity)
 
-# Print the correlation coefficient rounded to 2 decimal places
-print(paste("Correlation between Age and Quantity:", round(cor_age_quantity, 2)))
+# Round the correlation coefficient to 10 decimal places
+rounded_cor <- round(cor_age_quantity, 5)
+
+# Print the correlation coefficient
+print(paste("Correlation between Age and Quantity:", rounded_cor))
 
 
 
 
 
-## -------------------------------------------------------
 
-#Fitting and Anova Model for Product Price
-anova_total_purchase <- aov(Total.Purchase.Amount ~ Gender, data = customer_df)
+## -----------------------------------------------------------------
+# Filter numeric columns from the dataframe and remove "Customer.ID"
+numeric_df <- customer_df[, !(names(customer_df) %in% c("Customer.ID")) & sapply(customer_df, is.numeric)]
+
+# Compute the correlation matrix
+correlation_matrix <- cor(numeric_df)
+
+# Round the correlation matrix to 4 decimal places
+correlation_matrix_rounded <- round(correlation_matrix, 4)
+
+# Print the rounded correlation matrix
+print(correlation_matrix_rounded)
 
 
 
 
-## -------------------------------------------------------
+
+## -----------------------------------------------------------------
+# Rename levels of the Gender factor
+customer_df$Gender <- factor(customer_df$Gender, levels = c("Male", "Female"))
+
+# Perform ANOVA for Gender category and Total.Amount.Purchase
+anova_result1 <- aov(Total.Purchase.Amount ~ Gender, data = customer_df)
+
+# Print the ANOVA result
+print(anova_result1)
+
+# Perform ANOVA for Gender against Quantity
+anova_gender_quantity <- aov(Quantity ~ Gender, data = customer_df)
+
+# Perform ANOVA for Gender against Age
+anova_gender_age <- aov(Age ~ Gender, data = customer_df)
+
+# Perform ANOVA for Gender against Product.Price
+anova_gender_price <- aov(Product.Price ~ Gender, data = customer_df)
+
+# Print the ANOVA results for Gender against Quantity
+print("ANOVA for Gender against Quantity:")
+print(summary(anova_gender_quantity))
+
+# Print the ANOVA results for Gender against Age
+print("ANOVA for Gender against Age:")
+print(summary(anova_gender_age))
+
+# Print the ANOVA results for Gender against Product.Price
+print("ANOVA for Gender against Product.Price:")
+print(summary(anova_gender_price))
 
 
+
+## -----------------------------------------------------------------
+
+# Perform t-test for Gender against Quantity
+t_test_gender_quantity <- t.test(Quantity ~ Gender, data = customer_df)
+
+# Print the t-test results for Gender against Quantity
+print("t-test for Gender against Quantity:")
+print(t_test_gender_quantity)
+
+
+
+
+## -----------------------------------------------------------------
+
+# Perform t-test for Gender against Age
+t_test_gender_age <- t.test(Age ~ Gender, data = customer_df)
+
+# Print the t-test results for Gender against Age
+print("t-test for Gender against Age:")
+print(t_test_gender_age)
+
+
+
+## -----------------------------------------------------------------
+
+
+# Perform t-test for Gender against Product.Price
+t_test_gender_price <- t.test(Product.Price ~ Gender, data = customer_df)
+# Print the t-test results for Gender against Product.Price
+print("t-test for Gender against Product.Price:")
+print(t_test_gender_price)
+
+
+
+
+
+## -----------------------------------------------------------------
+
+# Extracting x and y variables
+x <- customers_number_by_age$Age_Group
+y <- customers_number_by_age$Number_of_Unique_Customers_by_Age_Group
+
+# Performing linear regression
+model <- lm(y ~ x)
+
+# Summary of the regression model
+summary(model)
+
+# Plotting
+plot(x, y, main = "Linear Regression of Number of Customers by Age Group", 
+     xlab = "Age Group", ylab = "Number of Customers")
+abline(model, col = "red")
+
+
+
+
+## -----------------------------------------------------------------
+ggplot(total_purchase_by_gender_category, aes(x = Gender, y = Total_Purchase_Based_On_Gender_Category, fill = Product.Category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Total Purchase Amount by Gender and Product Category",
+       x = "Gender",
+       y = "Total Purchase Amount") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
+  scale_y_continuous(labels = scales::comma)  # Format y-axis labels as commas for better readability
+
+
+
+
+## -----------------------------------------------------------------
+
+
+
+## -----------------------------------------------------------------
 
 
 
