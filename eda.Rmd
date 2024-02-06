@@ -6,6 +6,9 @@ title: "Customer Purchasing Behavior Analysis"
 # Customer Purchasing Behavior based on gender and age in relation to product categories (Electronics, Books, Home, Clothing).
 Date: 2024-02-05
 
+```{r include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
 
 ```{r setup, include=FALSE}
 # Load necessary packages
@@ -61,7 +64,7 @@ if (length(cols_with_missing) > 0) {
 
 
 # Removing Columns That Wont be Needed in The Analysis
-columns_to_remove <- c("Customer.Name", "Payment.Method", "Churn", "Returns")
+columns_to_remove <- c("Customer.Name", "Payment.Method", "Customer.Age", "Churn", "Returns")
 customer_df <- customer_df[, !(names(customer_df) %in% columns_to_remove)]
 
 # Display the structure of the updated data frame
@@ -247,20 +250,16 @@ cat("Non-Numeric columns are: ", paste(nonnumeric_cols, collapse = ", "), "\n")
 ```{r}
 
 # Creating Age Groups
-customer_df$Age_Group <- cut(customer_df$Customer.Age, breaks = c(17, 25, 35, 45, 60, Inf), labels = c("18-25", "26-35", "36-45", "46-60", "60+"))
+customer_df$Age_Group <- cut(customer_df$Age, breaks = c(17, 25, 35, 45, 60, Inf), labels = c("18-25", "26-35", "36-45", "46-60", "60+"))
 str(customer_df)
 
 
 # Group Customers by Age_Group 
-
 customers_number_by_age <- customer_df %>%
   group_by(Age_Group) %>%
   summarise(Number_of_Unique_Customers_by_Age_Group = n_distinct(Customer.ID))
 
-# Print the result
 print(customers_number_by_age)
-
-
 
 
 # Group by Age_Group and calculate the total purchase amount for each group
@@ -268,7 +267,6 @@ total_purchase_by_age <- customer_df %>%
   group_by(Age_Group) %>%
   summarise(Total_Purchase_Amount_Made = sum(Total.Purchase.Amount))
 
-# Print the result
 print(total_purchase_by_age)
 
 
@@ -389,7 +387,7 @@ ggplot(customers_number_by_age, aes(x = Age_Group, y = Number_of_Unique_Customer
 
 
 
-# Your data manipulation code
+# Total Purchase amount based on Age Group
 customer_df %>%
   group_by(Age_Group) %>%
   summarise(Total_Purchase_Amount_Made = sum(Total.Purchase.Amount)) %>%
@@ -413,19 +411,118 @@ ggplot(result_df, aes(x = Age_Group, y = Total_Purchase_Amount_Made, group = 1))
 
 
 
+# Create a data frame with x and y variables
+histogram_data <- customer_df %>%
+  group_by(Product.Category) %>%
+  summarise(Total_Purchases_Per_Category = sum(Total.Purchase.Amount)) %>%
+  arrange(Product.Category) %>%
+  ungroup()
 
+# Extract x and y variables using pull
+x_values <- histogram_data %>% pull(Product.Category)
+y_values <- histogram_data %>% pull(Total_Purchases_Per_Category)
 
-# Plotting Bar Chart for Total Purchase Amount for "Home" Product Category by Age Group
-ggplot(sales_first_category_by_Home, aes(x = Age_Group, y = Total_Purchase_Amount_on_Home, fill = Age_Group)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Total Purchase Amount for 'Home' Product Category by Age Group",
-       x = "Age Group",
-       y = "Total Purchase Amount") +
+# Create a histogram using ggplot
+ggplot(histogram_data, aes(x = x_values, y = y_values, fill = x_values)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Product Category", y = "Total Purchase Amount", title = "Total Purchase Amount by Product Category") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5),  # Center the title
-        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
-  scale_y_continuous(labels = scales::comma)  # Format y-axis labels as commas for better readability
+        axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better readability
+        panel.background = element_rect(fill = "grey90", color = "grey30"),  # Set grey background
+        plot.background = element_rect(fill = "grey90", color = "grey30"),
+        legend.background = element_rect(fill = "grey90", color = "grey30"),
+        panel.grid.major = element_line(color = "white"),  # White grid lines
+        panel.grid.minor = element_line(color = "white")) +  # White grid lines
+  scale_y_continuous(labels = scales::comma)
 
+
+
+
+
+# Age Against All Categories
+sales_by_category <- customer_df %>%
+  group_by(Product.Category, Age_Group) %>%
+  summarise(Total_Purchase_Amount = sum(Total.Purchase.Amount))
+
+# Create a ggplot line graph
+ggplot(sales_by_category, aes(x = Age_Group, y = Total_Purchase_Amount, color = Product.Category)) +
+  
+  geom_smooth(aes(group = Product.Category), method = "loess", se = FALSE, linetype = "solid", size = 1) +  # Adding a smooth continuous line
+
+  labs(x = "Age Group", y = "Total Purchase Amount", title = "Total Purchase Amount by Age Group and Category") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),  # Center the title
+        axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better readability
+        panel.background = element_rect(fill = "grey90", color = "grey30"),  # Set grey background
+        plot.background = element_rect(fill = "grey90", color = "grey30"),
+        legend.background = element_rect(fill = "grey90", color = "grey30"),
+        panel.grid.major = element_line(color = "white"),  # White grid lines
+        panel.grid.minor = element_line(color = "white")) +  # White grid lines
+  scale_y_continuous(labels = scales::comma)
+
+
+
+
+
+
+# Age Against All Categories
+sales_by_category <- customer_df %>%
+  group_by(Product.Category, Age_Group) %>%
+  summarise(Total_Purchase_Amount = sum(Total.Purchase.Amount))
+
+# Create a ggplot line graph for each category
+category_list <- unique(sales_by_category$Product.Category)
+
+# Create a list to store individual ggplot objects
+line_plots <- list()
+
+for (category in category_list) {
+  subset_data <- sales_by_category %>%
+    filter(Product.Category == category)
+
+  # Create a ggplot line graph
+  line_plot <- ggplot(subset_data, aes(x = Age_Group, y = Total_Purchase_Amount, color = Product.Category)) +
+    geom_line(aes(group = 1), size = 1) +  # Add 'group' aesthetic to connect points
+    geom_point(size = 2) +  # Show individual data points
+    labs(x = "Age Group", y = "Total Purchase Amount", title = paste("Total Purchase Amount by Age Group -", category)) +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5),
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          panel.background = element_rect(fill = "grey90", color = "grey30"),
+          plot.background = element_rect(fill = "grey90", color = "grey30"),
+          legend.background = element_rect(fill = "grey90", color = "grey30"),
+          panel.grid.major = element_line(color = "white"),
+          panel.grid.minor = element_line(color = "white")) +
+    scale_y_continuous(labels = scales::comma)
+  
+  # Add the line plot to the list
+  line_plots[[category]] <- line_plot
+}
+
+# Print or display the line plots
+line_plots
+
+```
+
+
+# CORRELATION ANALYSIS
+
+```{r}
+
+#A correlation Analysis Between Age and Total Purchase Amount
+cor_age_price <- cor(customer_df$Age, customer_df$Total.Purchase.Amount)
+
+# Print the correlation coefficients
+print(paste("Correlation between Age and Total Purchase Amount:", cor_age_price))
+
+
+
+cor_gender_price <- cor(as.numeric(customer_df$Gender), customer_df$Total.Purchase.Amount)
+cor_category_price <- cor(as.numeric(customer_df$Product.Category), customer_df$Total.Purchase.Amount)  # Assuming Product.Category is a categorical variable
+
+print(paste("Correlation between Gender and Total Purchase Amount:", cor_gender_price))
+print(paste("Correlation between Product Category and Total Purchase Amount:", cor_category_price))
 
 
 
